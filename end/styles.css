@@ -36,6 +36,7 @@
 .board {
     height: 100px;
     width: 200px;
+    text-align: center;
     background-color: goldenrod;
     border-radius: 8px;
     color: white;
