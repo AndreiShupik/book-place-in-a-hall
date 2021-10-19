@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.css" integrity="sha256-WAgYcAck1C1/zEl5sBl5cfyhxtLgKGdpI3oKyJffVRI=" crossorigin="anonymous" />
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="page">
+    <div class="arena"></div>
+    <div class="board">
+        <span>Selected seat</span>
+        <span class="board__selected-seat">-</span>
+    </div>
+
+    <script>
+        const generateNumbersRange = (from, to) => { // создаем функцию для генерации массива элементов (секторов, рядов, сидений), которая
+            // принимает в параметры их кол-во (от и до)
+            const result = []
+
+            for (let i = from; i <= to; i++) { // с помощью цикла, наполняем массив номерами по порядку для каждого элемента
+                result.push(i)
+            }
+            return result // возвращаем массив
+        }
+
+        const getLineSeats = () => generateNumbersRange(1, 10) // создаем функцию для сидений в ряду (по 10 сидений в каждом)
+            .map(seatNumber => // каждому сидению создаем <div> с его seatNumber, полученому из массива функции generateNumbersRange()
+                `<div
+        class="sector__seat"
+    data-seat-number="${seatNumber}"
+    ></div>
+`).join('') // делаем из текущего массива элементов строку c <div>'ми
+
+        const getSectorLines = () => { // создаем функцию для рядов сектора
+            const seatsString = getLineSeats()
+                /* поскольку у нас одинаковое кол-во сидений в каждом ряду, мы можем не вызывать функцию по созданию
+сидений каждый раз при создании ряда, а просто вызвать ее один раз здесь, а уже значение seatsString передавать в каждый новый
+созданный ряд */
+
+            return generateNumbersRange(1, 10)
+                .map(lineNumber => // каждому ряду создаем <div> с его lineNumber, полученому из массива функции generateNumbersRange()
+                    `<div
+        class="sector__line"
+        data-line-number="${lineNumber}"
+        >${seatsString}</div>
+    `).join('') // делаем из текущего массива элементов строку c <div>'ми
+        }
+
+        const arenaElem = document.querySelector('.arena') // создаем элемент для арены
+
+        const renderArena = () => {
+
+            const linesString = getSectorLines()
+                /* поскольку у нас одинаковое кол-во рядов в каждом секторе, мы можем не вызывать функцию по созданию
+                сидений каждый раз при создании сектора, а просто вызвать ее один раз здесь, а уже значение lineString передавать в каждый новый
+                созданный сектор */
+
+            const sectorsString = generateNumbersRange(1, 3) // создаем функцию для секторов на арене  
+                .map(sectorNumber => // каждому сектору создаем <div> с его sectorNumber, полученому из массива функции generateNumbersRange()
+                    `<div
+            class="sector"
+            data-sector-number="${sectorNumber}"
+        >${linesString}</div>
+    `).join('') // делаем из текущего массива элементов строку c <div>'ми
+
+            arenaElem.innerHTML = sectorsString // наконец, добалвяем все отрисованные нами секторы, ряды и сидения в арену (arenaElem)
+        }
+        renderArena()
+
+        /* Чтобы по клику на любое из сидений мы получали его номер и при этом не писали обработчик событий для каждого сиденья, исользуем
+        делигирование событий */
+
+        const onSeatSelect = event => { // функция обработчика события для сидений
+            const isSeat = event.target.classList.contains('sector__seat')
+                /* проверяем или событие (клик) было соершено по элементу, 
+класс которого содержит 'sector__seat' */
+            if (!isSeat) { // если isSeat вернет false - выходим из функции
+                return
+            }
+
+            const seatNumber = event.target.dataset.seatNumber
+                /* dataset - специальное свойство для элемента, если он пользуется
+data-атрибутами, где хранятся все его атрибуты data-название. Важно! Все, что пишется в атрибуте через дефис с маленькой буквы (прим. 
+data-seat-number), здесь нужно указывать без дефиса (-) и в camelcase - seatNumber. Получаем значение атрибута - номер сидения */
+            const lineNumber = event.target.closest('.sector__line').dataset.lineNumber
+                /* ищем ближайшего родителя сидения, на котором сработало событие с классом sector__line и получаем номер ряда */
+            const sectorNumber = event.target.closest('.sector').dataset.sectorNumber
+                /* ищем ближайшего родителя сидения, на котором сработало событие с классом sector и получаем номер сектора*/
+
+            const selectedSeatElem = document.querySelector('.board__selected-seat') // берем доску для вывода информации
+
+            // Выводим сидение, ряд и сектор на экран
+            selectedSeatElem.textContent = `${seatNumber} - L ${lineNumber} - S ${sectorNumber}`
+        }
+
+        arenaElem.addEventListener('click', onSeatSelect) // слушаем событие клик на всей арене
+    </script>
+</body>
+
+</html>
